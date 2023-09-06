@@ -2,16 +2,17 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Button, Modal, Form, Radio, Input } from "antd";
+import { Button, Modal, Form, Radio, Input, Spin } from "antd";
 import { FileAddOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
-import { calculateCarRent, generateCarImageUrl } from "@utils";
+import { saveCar, fetchCars, calculateCarRent, generateCarImageUrl } from "@utils";
 import { CarProps } from "@types";
 import CustomButton from "./CustomButton";
 import CarDetails from "./CarDetails";
 
 interface CarCardProps {
   car: CarProps;
+  setCars: React.Dispatch<React.SetStateAction<never[]>>;
 }
 
 type FieldType = {
@@ -20,18 +21,15 @@ type FieldType = {
   year?: number;
 };
 
-const CarCard = ({ car }: CarCardProps) => {
+const CarCard = ({ car, setCars }: CarCardProps) => {
   const { city_mpg, year, make, model, transmission, drive, cylinders, fuel_type } = car;
 
-  const carRent = calculateCarRent(city_mpg, year);
+  // const carRent = calculateCarRent(city_mpg, year);
 
   const [open, setOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [modalText, setModalText] = useState("Content of the modal");
-
-  const showModal = () => {
-    setOpen(true);
-  };
+  const [loading, setLoading] = useState(false);
 
   const handleOk = () => {
     setModalText("The modal will be closed after two seconds");
@@ -55,8 +53,26 @@ const CarCard = ({ car }: CarCardProps) => {
     setOpen(true);
   };
 
-  const onFinish = (values: any) => {
-    console.log("Success:", values);
+  const onFinish = async (values: any) => {
+    try {
+      setLoading(true);
+      const res = await saveCar(values);
+      console.log("save", res);
+      // const data = await fetchCars();
+      // const cars = data.json();
+      // setAllCars(cars);
+      setTimeout(() => {
+        setLoading(false);
+        setOpen(false);
+      }, 2000);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+        setOpen(false);
+      }, 2000);
+    }
   };
 
   const onFinishFailed = (errorInfo: any) => {
@@ -87,14 +103,16 @@ const CarCard = ({ car }: CarCardProps) => {
           <li>TYPE: {fuel_type}</li>
           <li>CLASS: {car.class}</li>
         </ul> */}
-          <div className="m-2 p-2 w-[60px] text-center bg-blue-700 text-white shadow-sm rounded-md hover:cursor-pointer" onClick={handleAddCar}>
-            <FileAddOutlined />
-          </div>
-          <div className="m-2 p-2 w-[60px] text-center bg-blue-700 text-white shadow-sm rounded-md hover:cursor-pointer">
-            <EditOutlined onClick={handleEditCar} />
-          </div>
-          <div className="m-2 p-2 w-[60px] text-center bg-blue-700 text-white shadow-sm rounded-md hover:cursor-pointer">
-            <DeleteOutlined />
+          <div className="car-card__actions-container">
+            <div className="m-2 p-2 w-[60px] text-center bg-blue-700 text-white shadow-sm rounded-md hover:cursor-pointer" onClick={handleAddCar}>
+              <FileAddOutlined />
+            </div>
+            <div className="m-2 p-2 w-[60px] text-center bg-blue-700 text-white shadow-sm rounded-md hover:cursor-pointer">
+              <EditOutlined onClick={handleEditCar} />
+            </div>
+            <div className="m-2 p-2 w-[60px] text-center bg-blue-700 text-white shadow-sm rounded-md hover:cursor-pointer">
+              <DeleteOutlined />
+            </div>
           </div>
         </div>
         <div className="relative flex w-full mt-2">
@@ -116,48 +134,50 @@ const CarCard = ({ car }: CarCardProps) => {
         </div> */}
 
           {/* <div className="car-card__btn-container">
-          <CustomButton
-            title="Details"
-            containerStyles="w-2/4 py-[16px] bg-secondary-orange"
-            textStyles="text-white text-[14px] leading-[17px] font-bold"
-            // rightIcon="/right-arrow.svg"
-            handleClick={() => setIsOpen(true)}
-          />
-        </div> */}
+            <CustomButton
+              title="Details"
+              containerStyles="w-2/4 py-[16px] bg-secondary-orange"
+              textStyles="text-white text-[14px] leading-[17px] font-bold"
+              // rightIcon="/right-arrow.svg"
+              // handleClick={() => setIsOpen(true)}
+            />
+          </div> */}
         </div>
         {/* <CarDetails isOpen={isOpen} closeModal={() => setIsOpen(false)} car={car} /> */}
         {/* <Button type="primary" onClick={showModal}>
         // Open Modal with async logic //{" "}
       </Button> */}
       </div>
-      <Modal title="Car Details" open={open} onOk={handleOk} confirmLoading={confirmLoading} onCancel={handleCancel}>
-        <Form
-          name="Car Info"
-          labelCol={{ span: 8 }}
-          wrapperCol={{ span: 16 }}
-          style={{ maxWidth: 600 }}
-          initialValues={{ remember: true }}
-          onFinish={onFinish}
-          onFinishFailed={onFinishFailed}
-          autoComplete="off">
-          <Form.Item<FieldType> label="Make" name="make" rules={[{ required: true, message: "Please input car make!" }]}>
-            <Input />
-          </Form.Item>
+      <Modal title="Car Details" open={open} onOk={handleOk} confirmLoading={confirmLoading} onCancel={handleCancel} footer={null}>
+        <Spin tip="Saving To Database..." spinning={loading}>
+          <Form
+            name="Car Info"
+            labelCol={{ span: 8 }}
+            wrapperCol={{ span: 16 }}
+            style={{ maxWidth: 600 }}
+            initialValues={{ remember: true }}
+            onFinish={onFinish}
+            onFinishFailed={onFinishFailed}
+            autoComplete="off">
+            <Form.Item<FieldType> label="Make" name="make" rules={[{ required: true, message: "Please input car make!" }]}>
+              <Input />
+            </Form.Item>
 
-          <Form.Item<FieldType> label="Model" name="model" rules={[{ required: true, message: "Please input car model!" }]}>
-            <Input />
-          </Form.Item>
+            <Form.Item<FieldType> label="Model" name="model" rules={[{ required: true, message: "Please input car model!" }]}>
+              <Input />
+            </Form.Item>
 
-          <Form.Item<FieldType> label="Year" name="year" rules={[{ required: true, message: "Please input car year!" }]}>
-            <Input />
-          </Form.Item>
+            <Form.Item<FieldType> label="Year" name="year" rules={[{ required: true, message: "Please input car year!" }]}>
+              <Input />
+            </Form.Item>
 
-          <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-            <Button type="primary" htmlType="submit">
-              Submit
-            </Button>
-          </Form.Item>
-        </Form>
+            <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
+              <Button className="bg-blue-500" type="primary" htmlType="submit">
+                Submit
+              </Button>
+            </Form.Item>
+          </Form>
+        </Spin>
       </Modal>
     </>
   );

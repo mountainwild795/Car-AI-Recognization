@@ -1,20 +1,21 @@
-"use client";
+// "use client";
 
 import { fetchCars } from "@utils";
 import { HomeProps } from "@types";
 import { fuels, yearsOfProduction } from "@constants";
 import { CarRecognization, CarCard, ShowMore, SearchBar, CustomFilter, Hero } from "@components";
-import { useState } from "react";
+// import { useState } from "react";
 
 export default async function Home({ searchParams }: HomeProps) {
-  const [cars, setCars] = useState([]);
-  const allCars = await fetchCars({
-    manufacturer: searchParams.manufacturer || "",
-    year: searchParams.year || 2022,
-    fuel: searchParams.fuel || "",
-    limit: searchParams.limit || 10,
-    model: searchParams.model || "",
-  });
+  // const [cars, setCars] = useState([]);
+  // const allCars = await fetchCars({
+  //   manufacturer: searchParams.manufacturer || "",
+  //   year: searchParams.year || 2022,
+  //   fuel: searchParams.fuel || "",
+  //   limit: searchParams.limit || 10,
+  //   model: searchParams.model || "",
+  // });
+  const allCars = await fetchCars();
   const isDataEmpty = !Array.isArray(allCars) || allCars.length < 1 || !allCars;
 
   return (
@@ -33,7 +34,7 @@ export default async function Home({ searchParams }: HomeProps) {
           <section>
             <div className="home__cars-wrapper">
               {allCars?.map((car) => (
-                <CarCard key={car.name} car={car} setCars={setCars} />
+                <CarCard key={car.name} car={car} />
               ))}
             </div>
 

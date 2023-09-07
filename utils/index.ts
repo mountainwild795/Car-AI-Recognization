@@ -41,7 +41,32 @@ export const deleteSearchParams = (type: string) => {
   return newPathname;
 };
 
-export async function fetchCars(filters: FilterProps) {
+export async function fetchCars() {
+  console.log("fetch");
+
+  // Set the required headers for the API request
+  const headers: HeadersInit = {
+    // "X-RapidAPI-Key": process.env.NEXT_PUBLIC_RAPID_API_KEY || "",
+    "X-RapidAPI-Key": "5a4092af27msh7c5ee675c84ddf1p182df0jsnfd65b786b7dd" || "",
+    "X-RapidAPI-Host": "cars-by-api-ninjas.p.rapidapi.com",
+  };
+
+  // Set the required headers for the API request
+  // const response = await fetch(`https://cars-by-api-ninjas.p.rapidapi.com/v1/cars?make=${manufacturer}&year=${year}&model=${model}&limit=${limit}&fuel_type=${fuel}`, {
+  //   headers: headers,
+  // });
+  const response = await fetch("http://127.0.0.1:5000", {
+    headers: headers,
+  });
+
+  // Parse the response as JSON
+  const result = await response.json();
+  // console.log(result);
+
+  return result;
+}
+
+export async function searchCars(filters: FilterProps) {
   const { manufacturer, year, model, limit, fuel } = filters;
 
   // Set the required headers for the API request
@@ -84,9 +109,51 @@ export async function saveCar(car: CarProps) {
 
   // Parse the response as JSON
   const result = await response.json();
-  console.log(result);
+  console.log("save", result);
+  location.reload();
+}
 
-  return result;
+export async function editCar(id: string | undefined, car: CarProps) {
+  // Set the required headers for the API request
+  const headers: HeadersInit = {
+    "Content-type": "application/json",
+  };
+
+  // Set the required headers for the API request
+  // const response = await fetch(`https://cars-by-api-ninjas.p.rapidapi.com/v1/cars?make=${manufacturer}&year=${year}&model=${model}&limit=${limit}&fuel_type=${fuel}`, {
+  //   headers: headers,
+  // });
+  const response = await fetch(`http://localhost:5000/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(car),
+    headers: headers,
+  });
+
+  // Parse the response as JSON
+  const result = await response.json();
+  console.log("edit", result);
+  location.reload();
+}
+
+export async function deleteCar(id: string | undefined) {
+  // Set the required headers for the API request
+  // const headers: HeadersInit = {
+  //   "Content-type": "application/json",
+  // };
+
+  // Set the required headers for the API request
+  // const response = await fetch(`https://cars-by-api-ninjas.p.rapidapi.com/v1/cars?make=${manufacturer}&year=${year}&model=${model}&limit=${limit}&fuel_type=${fuel}`, {
+  //   headers: headers,
+  // });
+  const response = await fetch(`http://localhost:5000/${id}`, {
+    method: "delete",
+  });
+  location.reload();
+  // Parse the response as JSON
+  // const result = await response.json();
+  // console.log(result);
+
+  // return result;
 }
 
 export async function fetchCarInfo(url: string) {
@@ -127,4 +194,3 @@ export const generateCarImageUrl = (car: CarProps, angle?: string) => {
 
   return `${url}`;
 };
-
